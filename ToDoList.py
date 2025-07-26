@@ -186,7 +186,7 @@ class TextExporter(TaskExporter):
 
 
 class ToDoList:
-    def __init__(self, data_dir='todo_data'):
+    def __init__(self, data_dir='todo_data'): # If you don't want to save the data, set this value to NONE.
         self.tasks: List[Task] = []
         self.categories: List[Category] = []
         self.data_dir = data_dir
