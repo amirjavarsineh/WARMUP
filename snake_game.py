@@ -2,7 +2,7 @@ from tkinter import *
 from random import randint
 import os
 import sys
-# ------------------------------------
+# -------------------------------------
 
 
 class Snake:
