@@ -9,6 +9,7 @@ GREEN = (0,255,0)
 WHITE = (255,255,255)
 BLACK = (0,0,0)
 RED = (255,0,0)
+dimGrey = (105,105,105)
 score1 = 0
 score2 = 0
 player1_name = "Player One"
@@ -28,8 +29,8 @@ def draw_scores():
     font = pygame.font.Font(None, 36)
     score1_text = font.render(f"{player1_name}: {score1}", True, GREEN)
     score2_text = font.render(f"{player2_name}: {score2}", True, GREEN)
-    hint = font.render("Press Spacebar to start", True, RED)
-    move = font.render("Player One use 'W,S' & Player Two use 'Arrow Key' ", True, RED)
+    hint = font.render("Press Spacebar to start", True, dimGrey)
+    move = font.render("Player One use 'W,S' & Player Two use 'Arrow Key' ", True, dimGrey)
     screen.blit(score1_text, (10, 10))
     screen.blit(score2_text, (WIDTH - score2_text.get_width() -10 , 10))
     screen.blit(hint, (265, 10))
