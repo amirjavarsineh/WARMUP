@@ -2,6 +2,8 @@ from tkinter import *
 from random import randint
 import os
 import sys
+
+
 # --------------------------------------
 
 
@@ -99,6 +101,8 @@ def restart_program():
 
 
 # ------------------------------------
+
+
 GAME_WDITH = 700
 GAME_HEIGHT = 700
 SPACE_SIZE = 35
@@ -146,3 +150,4 @@ food = Food()
 next_turn(snake, food)
 
 window.mainloop()
+
