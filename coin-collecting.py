@@ -3,6 +3,7 @@ import random
 import sys
 from typing import List, Tuple
 
+
 # Initialize pygame
 pygame.init()
 
@@ -519,4 +520,5 @@ def main() -> None:
 
 
 if __name__ == "__main__":
+
     main()
