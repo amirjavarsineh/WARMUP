@@ -37,6 +37,8 @@ PLAYING = 1
 GAME_OVER = 2
 SETTINGS = 3
 
+#---------------------------------
+
 
 class Player:
     def __init__(self):
@@ -524,4 +526,5 @@ def main() -> None:
 if __name__ == "__main__":
 
     main()
+
 
