@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from typing import Dict, List, Optional
 import sys
 import os
+import re
 
 # Basic configuration
 logging.basicConfig(
@@ -29,13 +30,25 @@ CONFIG = {
     'user_agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
     'currency_ids': {
         'price_dollar_rl': 'US Dollar',
-        'price_eur': 'Euro',
-        'price_gbp': 'British Pound',
-        'price_try': 'Turkish Lira',
-        'price_aed': 'UAE Dirham',
-        'price_cny': 'Chinese Yuan',
-        'price_rub': 'Russian Ruble',
-        'price_jpy': 'Japanese Yen'
+    'price_eur': 'Euro',
+    'price_gbp': 'British Pound',
+    'price_try': 'Turkish Lira',
+    'price_aed': 'UAE Dirham',
+    'price_cny': 'Chinese Yuan',
+    'price_rub': 'Russian Ruble',
+    'price_jpy': 'Japanese Yen',
+    'price_inr': 'Indian Rupee',
+    'price_sar': 'Saudi Riyal',
+    'price_cad': 'Canadian Dollar',
+    'price_aud': 'Australian Dollar',
+    'price_chf': 'Swiss Franc',
+    'price_sek': 'Swedish Krona',
+    'price_nok': 'Norwegian Krone',
+    'price_dkk': 'Danish Krone',
+    'price_kwd': 'Kuwaiti Dinar',
+    'price_bhd': 'Bahraini Dinar',
+    'price_omr': 'Omani Rial',
+    'price_qar': 'Qatari Riyal'
     },
     'gold_items': {
         'geram18': '18K Gold (per gram)',
@@ -43,7 +56,15 @@ CONFIG = {
         'nim': 'Half Emami Gold Coin',
         'rob': 'Quarter Emami Gold Coin',
         'geram24': '24K Gold (per gram)'
+    },
+    'crypto_ids': {  # ✅ NEW
+        'bitcoin': 'Bitcoin',
+        'ethereum': 'Ethereum',
+        'tether': 'Tether',
+        'dogecoin': 'Dogecoin',
+        'litecoin': 'Litecoin'
     }
+
 }
 
 
@@ -69,6 +90,36 @@ class FinancialDataFetcher:
                     time.sleep(CONFIG['retry_delay'])
                 continue
         return None
+
+    def fetch_crypto(self) -> Dict:
+        """Fetch cryptocurrency prices via TGJU's JSON API"""
+        logger.info("Fetching cryptocurrency prices via TGJU API...")
+        url = "https://api.tgju.org/v1/market/dataservice/crypto-assets?type=performance"
+        try:
+            response = self.session.get(url, timeout=CONFIG['timeout'])
+            response.raise_for_status()
+            result = response.json()
+
+            cryptos = {}
+            for entry in result.get('data', []):
+                sym = entry.get('symbol')
+                if not sym:
+                    continue
+                name = sym  # or map symbol to full name if preferred
+
+                price_irr = entry.get('p_irr') or entry.get('p')
+                change = entry.get('dp') or entry.get('d')
+
+                cryptos[name] = {
+                    'price': f"{price_irr} IRR",
+                    'change': f"{change}",
+                    'timestamp': self._get_current_time()
+                }
+            return cryptos
+
+        except Exception as e:
+            logger.error(f"Failed to fetch crypto: {e}")
+            return {}
 
     def fetch_currencies(self) -> Dict:
         """Fetch currency rates from TGJU"""
@@ -137,10 +188,12 @@ class FinancialDataFetcher:
         with ThreadPoolExecutor() as executor:
             currencies_future = executor.submit(self.fetch_currencies)
             gold_future = executor.submit(self.fetch_gold_and_coins)
+            crypto_future = executor.submit(self.fetch_crypto)  # ✅ NEW
 
             results = {
                 "Foreign Currencies": currencies_future.result(),
                 "Gold & Coins": gold_future.result(),
+                "Cryptocurrencies": crypto_future.result(),  # ✅ NEW
                 "metadata": {
                     "source": "TGJU.ORG",
                     "fetch_time": self._get_current_time(),
@@ -154,6 +207,8 @@ class FinancialDataFetcher:
     def _get_current_time(self) -> str:
         """Get current time in Tehran timezone"""
         return datetime.now(self.tehran_timezone).strftime("%Y-%m-%d %H:%M:%S %Z%z")
+
+
 
 
 class DataVisualizer:
@@ -170,8 +225,12 @@ class DataVisualizer:
 
         for name, details in items.items():
             try:
-                # Extract numeric value from price string
-                price_str = details['price'].replace('IRR', '').replace(',', '').strip()
+                # Extract and clean numeric value from price string
+                price_str = details['price']
+                price_str = re.sub(r'[^\d\.]', '', price_str)  # keep only digits & dot
+                if not price_str:
+                    raise ValueError("Empty price after cleaning")
+
                 price = float(price_str)
 
                 names.append(name)
@@ -185,7 +244,11 @@ class DataVisualizer:
             return
 
         plt.figure(figsize=(12, 6))
-        bars = plt.bar(names, prices, color=['gold' if 'Gold' in name or 'Coin' in name else 'skyblue' for name in names])
+        bars = plt.bar(
+            names,
+            prices,
+            color=['gold' if 'Gold' in name or 'Coin' in name else 'skyblue' for name in names]
+        )
 
         plt.title(f'{category} Prices - {data["metadata"]["fetch_time"]}')
         plt.xlabel('Item')
@@ -196,9 +259,11 @@ class DataVisualizer:
         # Add values on top of each bar
         for bar in bars:
             height = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width() / 2., height,
-                     f'{height:,.0f}',
-                     ha='center', va='bottom')
+            plt.text(
+                bar.get_x() + bar.get_width() / 2., height,
+                f'{height:,.0f}',
+                ha='center', va='bottom'
+            )
 
         plt.tight_layout()
 
@@ -209,6 +274,7 @@ class DataVisualizer:
             plt.show()
 
         plt.close()
+
 
 
 class DataExporter:
