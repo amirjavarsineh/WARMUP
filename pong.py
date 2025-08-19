@@ -2,7 +2,7 @@ import pygame
 import random
 
 #----------------
-
+# Initial settings
 pygame.init()
 WIDTH, HEIGHT = 800 , 600
 BALL_SPEED = 7
@@ -130,6 +130,7 @@ while running:
 
 
 pygame.quit()
+
 
 
 
