@@ -74,7 +74,7 @@ CONFIG = {
 
 }
 
-
+# main
 class FinancialDataFetcher:
     def __init__(self):
         self.session = requests.Session()
