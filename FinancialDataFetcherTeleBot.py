@@ -13,7 +13,7 @@ import sys
 import os
 import telebot
 import re
-#----------------------------------------------------
+
 
 
 # Telegram Bot Configuration
@@ -74,7 +74,7 @@ CONFIG = {
 
 }
 
-# main
+
 class FinancialDataFetcher:
     def __init__(self):
         self.session = requests.Session()
